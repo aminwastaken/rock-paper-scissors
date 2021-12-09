@@ -23,11 +23,11 @@ const Login = () => {
         .then(res => {
           // SyncStorage.set("token", res);
           const token = res.token;
-          console.log(token);
-          console.log(typeof token);
+          // console.log(token);
+          // console.log(typeof token);
           const _storeData = async () => {
             try {
-              console.log('here');
+              // console.log('here');
               await AsyncStorage.setItem('token', token);
             } catch (error) {}
           };
