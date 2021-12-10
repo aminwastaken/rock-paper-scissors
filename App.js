@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState} from 'react';
 import {
   SafeAreaView,
   ScrollView,
@@ -31,20 +31,13 @@ const App = () => {
     backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
   };
 
-  const Test = () => {
-    return (
-      <View>
-        <Text>yeet</Text>
-      </View>
-    );
-  };
   return (
     // <SafeAreaView>
     //   <StatusBar barStyle={isDarkMode ? "light-content" : "dark-content"} />
     <NavigationContainer>
       <Drawer.Navigator initialRouteName="Login">
         <Drawer.Screen name="Login" component={Login} />
-        <Drawer.Screen name="test" component={Matches} />
+        <Drawer.Screen name="Game" component={Matches} />
       </Drawer.Navigator>
     </NavigationContainer>
     // </SafeAreaView>

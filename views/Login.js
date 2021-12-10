@@ -1,13 +1,15 @@
 import {Button, StyleSheet, Text, View} from 'react-native';
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {TextInput} from 'react-native-gesture-handler';
 import {AsyncStorage} from 'react-native';
 
 const Login = () => {
   const [username, setUsername] = useState('');
+  const [token, setToken] = useState('');
   const handleChange = value => {
     setUsername(value);
   };
+  useEffect(() => {}, [token]);
   const submit = async () => {
     if (username && username !== '') {
       fetch('http://fauques.freeboxos.fr:3000/login', {
@@ -28,7 +30,9 @@ const Login = () => {
           const _storeData = async () => {
             try {
               // console.log('here');
+              setToken(token);
               await AsyncStorage.setItem('token', token);
+              await AsyncStorage.setItem('username', username);
             } catch (error) {}
           };
 
@@ -39,6 +43,7 @@ const Login = () => {
   };
   return (
     <View>
+      {/* {username && <Text>Current user {username}</Text>} */}
       <TextInput
         style={styles.input}
         underlineColorAndroid="transparent"
