@@ -42,7 +42,7 @@ const Match = ({id, turns, user1, user2}) => {
                 {keys.map(key => (
                   <View style={[styles.line]}>
                     <Text>
-                      {key === 'user1' ? user1.username : user2.username} :{' '}
+                      {key === 'user1' ? user1.username : user2.username} :
                     </Text>
                     <Text>{turn[key]}</Text>
                   </View>

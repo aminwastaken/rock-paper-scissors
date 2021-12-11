@@ -1,15 +1,27 @@
 import React, {useEffect, useState} from 'react';
-import {AsyncStorage, View, Text, Button, StyleSheet} from 'react-native';
-import Match from './Match';
+import {
+  AsyncStorage,
+  View,
+  Text,
+  Button,
+  StyleSheet,
+  ScrollView,
+} from 'react-native';
+import Match from '../components/Match';
 import Toast from 'react-native-toast-message';
 import {useIsDrawerOpen} from '@react-navigation/drawer';
+import CardContainer from '../components/CardContainer';
+import {Picker} from '@react-native-picker/picker';
 
 const Matches = props => {
   const [token, setToken] = useState('');
   const [matches, setMatches] = useState([]);
+  const [matchId, setMatchId] = useState(undefined);
   const [currentMatch, setCurrentMatch] = useState(undefined);
   const [username, setUsername] = useState(undefined);
-  const isOpen = useIsDrawerOpen;
+  const [currentMove, setCurrentMove] = useState('rock');
+  const [currentTurn, setCurrentTurn] = useState(1);
+  const options = ['rock', 'paper', 'scissors'];
 
   useEffect(async () => {
     getMatch();
@@ -30,6 +42,18 @@ const Matches = props => {
     }
   };
 
+  const _retrieveMatchId = async () => {
+    try {
+      const value = await AsyncStorage.getItem('matchId');
+      if (value !== null) {
+        return value;
+      }
+    } catch (error) {
+      // Error retrieving data
+      console.log("Couldn't retrieve match id");
+    }
+  };
+
   const _retrieveUsername = async () => {
     try {
       const value = await AsyncStorage.getItem('username');
@@ -43,10 +67,6 @@ const Matches = props => {
   };
 
   const loadMatches = async () => {
-    console.log('props start');
-    console.log(props);
-    console.log('props end');
-    console.log(props.navigation.isFocused());
     const token = await _retrieveToken();
 
     setToken(token);
@@ -74,31 +94,9 @@ const Matches = props => {
       .catch(err => console.log(err));
   };
 
-  // const postMatches = async () => {
-  //   const token = await _retrieveToken();
-  //   setToken(token);
-  //   console.log(token);
-  //   fetch('http://fauques.freeboxos.fr:3000/matches', {
-  //     method: 'POST',
-  //     headers: {
-  //       'Content-type': 'application/json',
-  //       Authorization: 'Bearer ' + token,
-  //     },
-  //   })
-  //     .then(res => {
-  //       console.log('current match (post request)');
-  //       return res.json();
-  //     })
-  //     .then(res => {
-  //       console.log('current match body (post request)');
-  //       console.log(res);
-  //     })
-  //     .catch(err => console.log(err));
-  // };
-
-  const getMatch = async matchId => {
-    const id = '61b1f6161053fe731065b9f3';
-
+  const getMatch = async () => {
+    const id = await _retrieveMatchId();
+    console.log('match id: ' + id);
     const token = await _retrieveToken();
     fetch(
       'http://fauques.freeboxos.fr:3000/matches/' + id,
@@ -140,21 +138,31 @@ const Matches = props => {
       .then(res => {
         console.log('post body');
         console.log(res);
+        console.log(res.match);
+        if (res._id) {
+          const _storeMatchId = async () => {
+            try {
+              setMatchId(res._id);
+              await AsyncStorage.setItem('matchId', res._id);
+            } catch (error) {}
+          };
+          _storeMatchId();
+        }
       })
       .catch(err => console.log(err));
   };
 
-  const playTurn = async (matchId, turnId) => {
+  const playTurn = async () => {
     const token = await _retrieveToken();
     fetch(
-      `http://fauques.freeboxos.fr:3000/matches/${matchId}/turns/${turnId}`,
+      `http://fauques.freeboxos.fr:3000/matches/${matchId}/turns/${currentTurn}`,
       {
         method: 'POST',
         headers: {
           'Content-type': 'application/json',
           Authorization: 'Bearer ' + token,
         },
-        body: JSON.stringify({move: 'paper'}),
+        body: JSON.stringify({move: currentMove}),
       },
     )
       .then(res => {
@@ -173,29 +181,56 @@ const Matches = props => {
             position: 'bottom',
           });
         }
+
+        getMatch();
+        loadMatches();
       })
       .catch(err => console.log(err));
   };
 
+  const selectOption = move => {
+    console.log('pressed');
+    setCurrentMove(move);
+  };
+
   return (
-    <View style={styles.mainContainer}>
+    <ScrollView style={styles.mainContainer}>
       {/* <Text>{token}</Text> */}
       <View style={styles.userView}>
         <Text>Current user: </Text>
         <Text>{username}</Text>
+      </View>
+      <View style={styles.userView}>
+        <Text>Current match id: </Text>
+        <Text>{matchId}</Text>
       </View>
       <View style={styles.buttonContainer}>
         <Button onPress={loadMatches} title="load matches" />
         <Button onPress={newMatch} title="new match" />
         <Button onPress={getMatch} title="get match" />
       </View>
-      <View style={styles.buttonContainer}>
-        <Button
-          onPress={() => playTurn('61b1f6161053fe731065b9f3', 2)}
-          title="play turn"
-        />
+
+      <CardContainer
+        options={['rock', 'paper', 'scissors']}
+        selected={currentMove}
+        selectOption={selectOption}
+      />
+
+      <View>
+        <Picker
+          selectedValue={currentTurn}
+          style={{height: 50, backgroundColor: 'white'}}
+          onValueChange={(itemValue, itemIndex) => setCurrentTurn(itemValue)}>
+          <Picker.Item label="First turn" value={1} />
+          <Picker.Item label="Second turn" value={2} />
+          <Picker.Item label="Third turn" value={3} />
+        </Picker>
       </View>
-      <Text>Current match</Text>
+      <Text>{currentTurn}</Text>
+      <View style={styles.buttonContainer}>
+        <Button onPress={() => playTurn()} title="play turn" />
+      </View>
+      <Text style={styles.title}>Current match</Text>
       {currentMatch && (
         <Match
           id={currentMatch._id}
@@ -205,7 +240,7 @@ const Matches = props => {
         />
       )}
 
-      <Text>All matches</Text>
+      <Text style={styles.title}>All matches</Text>
       {matches.map(match => (
         <Match
           id={match._id}
@@ -215,7 +250,7 @@ const Matches = props => {
         />
       ))}
       <Toast />
-    </View>
+    </ScrollView>
   );
 };
 
@@ -231,6 +266,11 @@ const styles = StyleSheet.create({
   matches: {},
   userView: {
     flexDirection: 'row',
+  },
+
+  title: {
+    fontSize: 20,
+    color: 'white',
   },
 });
 
