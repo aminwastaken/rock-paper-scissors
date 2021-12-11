@@ -1,11 +1,13 @@
 import {Button, StyleSheet, Text, View} from 'react-native';
-import React, {useEffect, useState} from 'react';
+import React, {useContext, useEffect, useState} from 'react';
 import {TextInput} from 'react-native-gesture-handler';
 import {AsyncStorage} from 'react-native';
+import Context from '../Context';
 
-const Login = () => {
+const Login = ({navigation}) => {
   const [username, setUsername] = useState('');
   const [token, setToken] = useState('');
+  const {user, setUser} = useContext(Context);
   const handleChange = value => {
     setUsername(value);
   };
@@ -25,8 +27,7 @@ const Login = () => {
         .then(res => {
           // SyncStorage.set("token", res);
           const token = res.token;
-          // console.log(token);
-          // console.log(typeof token);
+          setUser({username: username, token: res.token});
           const _storeData = async () => {
             try {
               // console.log('here');
@@ -37,13 +38,18 @@ const Login = () => {
           };
 
           _storeData();
+          navigation.navigate('Matches');
         })
         .catch(err => console.log(err));
     }
   };
   return (
     <View>
-      {/* {username && <Text>Current user {username}</Text>} */}
+      {user && (
+        <Text>
+          Current user {user.username} - token {user.token}
+        </Text>
+      )}
       <TextInput
         style={styles.input}
         underlineColorAndroid="transparent"

@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useContext, useEffect, useState} from 'react';
 import {
   AsyncStorage,
   View,
@@ -12,22 +12,21 @@ import Toast from 'react-native-toast-message';
 import {useIsDrawerOpen} from '@react-navigation/drawer';
 import CardContainer from '../components/CardContainer';
 import {Picker} from '@react-native-picker/picker';
+import Context from '../Context';
 
 const Matches = props => {
-  const [token, setToken] = useState('');
   const [matches, setMatches] = useState([]);
   const [matchId, setMatchId] = useState(undefined);
   const [currentMatch, setCurrentMatch] = useState(undefined);
   const [username, setUsername] = useState(undefined);
   const [currentMove, setCurrentMove] = useState('rock');
   const [currentTurn, setCurrentTurn] = useState(1);
+  const {user, setUser} = useContext(Context);
   const options = ['rock', 'paper', 'scissors'];
 
   useEffect(async () => {
     getMatch();
     loadMatches();
-    const username = await _retrieveUsername();
-    setUsername(username);
   }, []);
   const updateToken = () => {};
   const _retrieveToken = async () => {
@@ -54,22 +53,8 @@ const Matches = props => {
     }
   };
 
-  const _retrieveUsername = async () => {
-    try {
-      const value = await AsyncStorage.getItem('username');
-      if (value !== null) {
-        return value;
-      }
-    } catch (error) {
-      // Error retrieving data
-      console.log("Couldn't retrieve token");
-    }
-  };
-
   const loadMatches = async () => {
     const token = await _retrieveToken();
-
-    setToken(token);
     console.log(token);
     fetch('http://fauques.freeboxos.fr:3000/matches', {
       method: 'GET',
@@ -198,7 +183,7 @@ const Matches = props => {
       {/* <Text>{token}</Text> */}
       <View style={styles.userView}>
         <Text>Current user: </Text>
-        <Text>{username}</Text>
+        <Text>{user.username}</Text>
       </View>
       <View style={styles.userView}>
         <Text>Current match id: </Text>
