@@ -22,6 +22,7 @@ import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import {createDrawerNavigator} from '@react-navigation/drawer';
 import Matches from './views/Maches';
 import Context from './Context';
+import Game from './views/Game';
 
 const Stack = createNativeStackNavigator();
 // const Drawer = createDrawerNavigator();
@@ -43,6 +44,7 @@ const App = () => {
         <Stack.Navigator initialRouteName="Login">
           <Stack.Screen name="Login" component={Login} />
           <Stack.Screen name="Matches" component={Matches} />
+          <Stack.Screen name="Game" component={Game} />
         </Stack.Navigator>
       </NavigationContainer>
     </Context.Provider>

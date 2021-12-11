@@ -13,51 +13,26 @@ import {useIsDrawerOpen} from '@react-navigation/drawer';
 import CardContainer from '../components/CardContainer';
 import {Picker} from '@react-native-picker/picker';
 import Context from '../Context';
-import {TouchableWithoutFeedback} from 'react-native-gesture-handler';
 
-const Matches = ({navigation}) => {
-  const [matches, setMatches] = useState([]);
-  const [matchId, setMatchId] = useState(undefined);
+const Game = ({route, navigation}) => {
   const [currentMatch, setCurrentMatch] = useState(undefined);
+  const [currentMove, setCurrentMove] = useState('rock');
+  const [currentTurn, setCurrentTurn] = useState(1);
+  const {gameId} = route.params;
   const {
     user: {username, token},
     setUser,
   } = useContext(Context);
+  const options = ['rock', 'paper', 'scissors'];
 
   useEffect(() => {
     getMatch();
-    loadMatches();
-  }, [username, token]);
-
-  const loadMatches = async () => {
-    console.log(token);
-    fetch('http://fauques.freeboxos.fr:3000/matches', {
-      method: 'GET',
-      headers: {
-        'Content-type': 'application/json',
-        Authorization: 'Bearer ' + token,
-      },
-    })
-      .then(res => {
-        console.log('matches');
-
-        return res.json();
-      })
-      .then(res => {
-        console.log('all matches');
-        console.log(res);
-        console.log('turns');
-        console.log(res[0].turns);
-
-        setMatches(res);
-      })
-      .catch(err => console.log(err));
-  };
+  }, [gameId]);
 
   const getMatch = async () => {
-    console.log('match id: ' + matchId);
+    console.log('match id: ' + gameId);
     fetch(
-      'http://fauques.freeboxos.fr:3000/matches/' + matchId,
+      'http://fauques.freeboxos.fr:3000/matches/' + gameId,
 
       {
         method: 'GET',
@@ -79,44 +54,9 @@ const Matches = ({navigation}) => {
       .catch(err => console.log(err));
   };
 
-  const newMatch = async () => {
-    fetch('http://fauques.freeboxos.fr:3000/matches', {
-      method: 'POST',
-      headers: {
-        'Content-type': 'application/json',
-        Authorization: 'Bearer ' + token,
-      },
-    })
-      .then(res => {
-        console.log('post response');
-        console.log(res);
-        return res.json();
-      })
-      .then(res => {
-        console.log('post body');
-        console.log(res);
-        console.log(res.match);
-        if (res._id) {
-          const _storeMatchId = async () => {
-            try {
-              setMatchId(res._id);
-              await AsyncStorage.setItem('matchId', res._id);
-            } catch (error) {}
-          };
-          _storeMatchId();
-        }
-      })
-      .catch(err => console.log(err));
-  };
-
-  const openGame = id => {
-    console.log('opening game');
-    navigation.navigate('Game', {gameId: id});
-  };
-
   const playTurn = async () => {
     fetch(
-      `http://fauques.freeboxos.fr:3000/matches/${matchId}/turns/${currentTurn}`,
+      `http://fauques.freeboxos.fr:3000/matches/${gameId}/turns/${currentTurn}`,
       {
         method: 'POST',
         headers: {
@@ -149,6 +89,11 @@ const Matches = ({navigation}) => {
       .catch(err => console.log(err));
   };
 
+  const selectOption = move => {
+    console.log('pressed');
+    setCurrentMove(move);
+  };
+
   return (
     <ScrollView style={styles.mainContainer}>
       <Text>{token}</Text>
@@ -157,15 +102,32 @@ const Matches = ({navigation}) => {
         <Text>{username}</Text>
       </View>
       <View style={styles.userView}>
+        <Text>Current move: </Text>
+        <Text>{currentMove}</Text>
+      </View>
+      <View style={styles.userView}>
         <Text>Current match id: </Text>
-        <Text>{matchId}</Text>
+        <Text>{gameId}</Text>
       </View>
+      <CardContainer
+        options={['rock', 'paper', 'scissors']}
+        selected={currentMove}
+        selectOption={selectOption}
+      />
+      <View>
+        <Picker
+          selectedValue={currentTurn}
+          style={{height: 50, backgroundColor: 'white'}}
+          onValueChange={(itemValue, itemIndex) => setCurrentTurn(itemValue)}>
+          <Picker.Item label="First turn" value={1} />
+          <Picker.Item label="Second turn" value={2} />
+          <Picker.Item label="Third turn" value={3} />
+        </Picker>
+      </View>
+      <Text>{currentTurn}</Text>
       <View style={styles.buttonContainer}>
-        <Button onPress={loadMatches} title="load matches" />
-        <Button onPress={newMatch} title="new match" />
-        <Button onPress={getMatch} title="get match" />
+        <Button onPress={() => playTurn()} title="play turn" />
       </View>
-
       <Text style={styles.title}>Current match</Text>
       {currentMatch && (
         <Match
@@ -175,17 +137,6 @@ const Matches = ({navigation}) => {
           user2={currentMatch.user2}
         />
       )}
-      <Text style={styles.title}>All matches</Text>
-      {matches.map(match => (
-        <Match
-          id={match._id}
-          turns={match.turns}
-          user1={match.user1}
-          user2={match.user2}
-          resume={true}
-          openGame={openGame}
-        />
-      ))}
       <Toast />
     </ScrollView>
   );
@@ -211,4 +162,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Matches;
+export default Game;
