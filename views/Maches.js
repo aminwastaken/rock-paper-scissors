@@ -17,20 +17,16 @@ import {TouchableWithoutFeedback} from 'react-native-gesture-handler';
 
 const Matches = ({navigation}) => {
   const [matches, setMatches] = useState([]);
-  const [matchId, setMatchId] = useState(undefined);
-  const [currentMatch, setCurrentMatch] = useState(undefined);
   const {
     user: {username, token},
     setUser,
   } = useContext(Context);
 
   useEffect(() => {
-    getMatch();
     loadMatches();
   }, [username, token]);
 
   const loadMatches = async () => {
-    console.log(token);
     fetch('http://fauques.freeboxos.fr:3000/matches', {
       method: 'GET',
       headers: {
@@ -39,42 +35,10 @@ const Matches = ({navigation}) => {
       },
     })
       .then(res => {
-        console.log('matches');
-
         return res.json();
       })
       .then(res => {
-        console.log('all matches');
-        console.log(res);
-        console.log('turns');
-        console.log(res[0].turns);
-
         setMatches(res);
-      })
-      .catch(err => console.log(err));
-  };
-
-  const getMatch = async () => {
-    console.log('match id: ' + matchId);
-    fetch(
-      'http://fauques.freeboxos.fr:3000/matches/' + matchId,
-
-      {
-        method: 'GET',
-        headers: {
-          'Content-type': 'application/json',
-          Authorization: 'Bearer ' + token,
-        },
-      },
-    )
-      .then(res => {
-        console.log('match res');
-        return res.json();
-      })
-      .then(res => {
-        console.log('current match');
-        setCurrentMatch(res);
-        console.log(res);
       })
       .catch(err => console.log(err));
   };
@@ -97,97 +61,51 @@ const Matches = ({navigation}) => {
         console.log(res);
         console.log(res.match);
         if (res._id) {
-          const _storeMatchId = async () => {
-            try {
-              setMatchId(res._id);
-              await AsyncStorage.setItem('matchId', res._id);
-            } catch (error) {}
-          };
-          _storeMatchId();
-        }
-      })
-      .catch(err => console.log(err));
-  };
-
-  const openGame = id => {
-    console.log('opening game');
-    navigation.navigate('Game', {gameId: id});
-  };
-
-  const playTurn = async () => {
-    fetch(
-      `http://fauques.freeboxos.fr:3000/matches/${matchId}/turns/${currentTurn}`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-type': 'application/json',
-          Authorization: 'Bearer ' + token,
-        },
-        body: JSON.stringify({move: currentMove}),
-      },
-    )
-      .then(res => {
-        console.log('turn response');
-        console.log(res);
-        return res.json();
-      })
-      .then(res => {
-        console.log('turn response body');
-        console.log(res);
-        if (res) {
-          const resKeys = Object.keys(res);
+          console.log('in id');
+          navigation.navigate('Game', {gameId: id});
+        } else {
           Toast.show({
-            text1: resKeys[0],
-            text2: res[resKeys[0]],
+            text1: "You're already in a match",
             position: 'bottom',
           });
         }
-
-        getMatch();
-        loadMatches();
       })
-      .catch(err => console.log(err));
+      .catch(err => {
+        console.log('new match error');
+        console.log(err);
+      });
+  };
+
+  const openGame = id => {
+    navigation.navigate('Game', {gameId: id});
   };
 
   return (
-    <ScrollView style={styles.mainContainer}>
-      <Text>{token}</Text>
-      <View style={styles.userView}>
-        <Text>Current user: </Text>
-        <Text>{username}</Text>
-      </View>
-      <View style={styles.userView}>
-        <Text>Current match id: </Text>
-        <Text>{matchId}</Text>
-      </View>
-      <View style={styles.buttonContainer}>
-        <Button onPress={loadMatches} title="load matches" />
-        <Button onPress={newMatch} title="new match" />
-        <Button onPress={getMatch} title="get match" />
-      </View>
+    <View>
+      <ScrollView style={styles.mainContainer}>
+        {/* <Text>{token}</Text> */}
+        <View style={styles.userView}>
+          <Text>Current user: </Text>
+          <Text>{username}</Text>
+        </View>
+        <View style={styles.buttonContainer}>
+          <Button onPress={newMatch} title="new match" />
+        </View>
 
-      <Text style={styles.title}>Current match</Text>
-      {currentMatch && (
-        <Match
-          id={currentMatch._id}
-          turns={currentMatch.turns}
-          user1={currentMatch.user1}
-          user2={currentMatch.user2}
-        />
-      )}
-      <Text style={styles.title}>All matches</Text>
-      {matches.map(match => (
-        <Match
-          id={match._id}
-          turns={match.turns}
-          user1={match.user1}
-          user2={match.user2}
-          resume={true}
-          openGame={openGame}
-        />
-      ))}
+        <Text style={styles.title}>All matches</Text>
+        {matches.map(match => (
+          <Match
+            id={match._id}
+            turns={match.turns}
+            user1={match.user1}
+            user2={match.user2}
+            resume={!match.winner}
+            openGame={openGame}
+          />
+        ))}
+      </ScrollView>
       <Toast />
-    </ScrollView>
+    </View>
   );
 };
 

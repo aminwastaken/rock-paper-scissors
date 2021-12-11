@@ -27,7 +27,7 @@ const Game = ({route, navigation}) => {
 
   useEffect(() => {
     getMatch();
-  }, [gameId]);
+  }, [gameId, currentMatch]);
 
   const getMatch = async () => {
     console.log('match id: ' + gameId);
