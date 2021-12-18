@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useMemo} from 'react';
 import {
   SafeAreaView,
   ScrollView,
@@ -21,12 +21,16 @@ import {NavigationContainer} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import {createDrawerNavigator} from '@react-navigation/drawer';
 import Matches from './views/Maches';
+import Context from './Context';
+import Game from './views/Game';
 
 const Stack = createNativeStackNavigator();
-const Drawer = createDrawerNavigator();
+// const Drawer = createDrawerNavigator();
 const App = () => {
   const isDarkMode = useColorScheme() === 'dark';
+  const [user, setUser] = useState({username: 'pog', token: 'champ'});
 
+  const value = useMemo(() => ({user, setUser}), [user]);
   const backgroundStyle = {
     backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
   };
@@ -34,12 +38,17 @@ const App = () => {
   return (
     // <SafeAreaView>
     //   <StatusBar barStyle={isDarkMode ? "light-content" : "dark-content"} />
-    <NavigationContainer>
-      <Drawer.Navigator initialRouteName="Login">
-        <Drawer.Screen name="Login" component={Login} />
-        <Drawer.Screen name="Game" component={Matches} />
-      </Drawer.Navigator>
-    </NavigationContainer>
+
+    <Context.Provider value={value}>
+      <NavigationContainer>
+        <Stack.Navigator initialRouteName="Login">
+          <Stack.Screen name="Login" component={Login} />
+          <Stack.Screen name="Matches" component={Matches} />
+          <Stack.Screen name="Game" component={Game} />
+        </Stack.Navigator>
+      </NavigationContainer>
+    </Context.Provider>
+
     // </SafeAreaView>
   );
 };

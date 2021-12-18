@@ -1,5 +1,5 @@
 import React from 'react';
-import {StyleSheet, Text, View} from 'react-native';
+import {Button, StyleSheet, Text, View} from 'react-native';
 
 const styles = StyleSheet.create({
   container: {
@@ -22,7 +22,7 @@ const styles = StyleSheet.create({
   },
 });
 
-const Match = ({id, turns, user1, user2}) => {
+const Match = ({id, turns, user1, user2, resume, openGame}) => {
   return (
     <View style={styles.container}>
       <View style={[styles.line]}>
@@ -60,6 +60,9 @@ const Match = ({id, turns, user1, user2}) => {
         <Text>user2: </Text>
         <Text>{user2?.username}</Text>
       </View>
+      {resume === true && (
+        <Button title="resume" onPress={() => openGame(id)} />
+      )}
     </View>
   );
 };

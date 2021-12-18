@@ -1,15 +1,15 @@
 import React from 'react';
 import {StyleSheet, View} from 'react-native';
-import {TouchableWithoutFeedback} from 'react-native-gesture-handler';
+import {TouchableOpacity} from 'react-native';
 import Card from './Card';
 
 const CardContainer = ({options, selected, selectOption}) => {
   return (
     <View style={styles.CardContainer}>
       {options?.map(option => (
-        <TouchableWithoutFeedback onPress={() => selectOption(option)}>
+        <TouchableOpacity onPress={() => selectOption(option)}>
           <Card icon={option} selected={option === selected} />
-        </TouchableWithoutFeedback>
+        </TouchableOpacity>
       ))}
 
       {/* <Card icon="paper" selected={true} />
