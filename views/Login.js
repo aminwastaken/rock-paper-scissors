@@ -1,7 +1,6 @@
 import {Button, StyleSheet, Text, View} from 'react-native';
 import React, {useContext, useEffect, useState} from 'react';
 import {TextInput} from 'react-native-gesture-handler';
-import {AsyncStorage} from 'react-native';
 import Context from '../Context';
 
 const Login = ({navigation}) => {
@@ -25,15 +24,11 @@ const Login = ({navigation}) => {
           return res.json();
         })
         .then(res => {
-          // SyncStorage.set("token", res);
           const token = res.token;
           setUser({username: username, token: res.token});
           const _storeData = async () => {
             try {
-              // console.log('here');
               setToken(token);
-              await AsyncStorage.setItem('token', token);
-              await AsyncStorage.setItem('username', username);
             } catch (error) {}
           };
 
@@ -45,11 +40,11 @@ const Login = ({navigation}) => {
   };
   return (
     <View>
-      {user && (
+      {/* {user && (
         <Text>
           Current user {user.username} - token {user.token}
         </Text>
-      )}
+      )} */}
       <TextInput
         style={styles.input}
         underlineColorAndroid="transparent"
@@ -58,7 +53,6 @@ const Login = ({navigation}) => {
         autoCapitalize="none"
         onChangeText={handleChange}
       />
-      <Text>{username}</Text>
       <Button
         style={styles.button}
         onPress={submit}
