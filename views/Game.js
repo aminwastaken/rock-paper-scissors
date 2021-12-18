@@ -1,18 +1,11 @@
 import React, {useContext, useEffect, useState} from 'react';
-import {
-  AsyncStorage,
-  View,
-  Text,
-  Button,
-  StyleSheet,
-  ScrollView,
-} from 'react-native';
+import {View, Text, Button, StyleSheet, ScrollView} from 'react-native';
 import Match from '../components/Match';
 import Toast from 'react-native-toast-message';
-import {useIsDrawerOpen} from '@react-navigation/drawer';
 import CardContainer from '../components/CardContainer';
 import {Picker} from '@react-native-picker/picker';
 import Context from '../Context';
+import EventSource from 'react-native-sse';
 
 const Game = ({route, navigation}) => {
   const [currentMatch, setCurrentMatch] = useState(undefined);
@@ -26,7 +19,36 @@ const Game = ({route, navigation}) => {
   const options = ['rock', 'paper', 'scissors'];
 
   useEffect(() => {
-    getMatch();
+    // getMatch();
+    console.log(gameId);
+    const es = new EventSource(
+      `http://fauques.freeboxos.fr:3000/matches/${gameId}/subscribe`,
+      {
+        headers: {
+          Authorization: 'Bearer ' + token,
+        },
+      },
+    );
+
+    es.addEventListener('open', event => {
+      console.log('Open SSE connection.');
+    });
+
+    es.addEventListener('message', event => {
+      console.log('New message event:', event.data);
+    });
+
+    es.addEventListener('error', event => {
+      if (event.type === 'error') {
+        console.error('Connection error:', event.message);
+      } else if (event.type === 'exception') {
+        console.error('Error:', event.message, event.error);
+      }
+    });
+
+    es.addEventListener('close', event => {
+      console.log('Close SSE connection.');
+    });
   }, [gameId, currentMatch]);
 
   const getMatch = async () => {
@@ -96,7 +118,7 @@ const Game = ({route, navigation}) => {
 
   return (
     <ScrollView style={styles.mainContainer}>
-      <Text>{token}</Text>
+      {/* <Text>{token}</Text> */}
       <View style={styles.userView}>
         <Text>Current user: </Text>
         <Text>{username}</Text>

@@ -1,12 +1,5 @@
 import React, {useContext, useEffect, useState} from 'react';
-import {
-  AsyncStorage,
-  View,
-  Text,
-  Button,
-  StyleSheet,
-  ScrollView,
-} from 'react-native';
+import {View, Text, Button, StyleSheet, ScrollView} from 'react-native';
 import Match from '../components/Match';
 import Toast from 'react-native-toast-message';
 import {useIsDrawerOpen} from '@react-navigation/drawer';
@@ -38,6 +31,8 @@ const Matches = ({navigation}) => {
         return res.json();
       })
       .then(res => {
+        console.log('all matches');
+        console.log(res);
         setMatches(res);
       })
       .catch(err => console.log(err));
@@ -99,7 +94,7 @@ const Matches = ({navigation}) => {
             turns={match.turns}
             user1={match.user1}
             user2={match.user2}
-            resume={!match.winner}
+            resume={match.winner || match.winner === null ? false : true}
             openGame={openGame}
           />
         ))}
