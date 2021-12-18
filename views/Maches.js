@@ -1,4 +1,4 @@
-import React, {useContext, useEffect, useState} from 'react';
+import React, {useContext, useEffect, useMemo, useState} from 'react';
 import {View, Text, Button, StyleSheet, ScrollView} from 'react-native';
 import Match from '../components/Match';
 import Toast from 'react-native-toast-message';
@@ -7,6 +7,7 @@ import CardContainer from '../components/CardContainer';
 import {Picker} from '@react-native-picker/picker';
 import Context from '../Context';
 import {TouchableWithoutFeedback} from 'react-native-gesture-handler';
+import EventSource from 'react-native-sse';
 
 const Matches = ({navigation}) => {
   const [matches, setMatches] = useState([]);

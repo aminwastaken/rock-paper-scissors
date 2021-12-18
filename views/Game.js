@@ -1,4 +1,4 @@
-import React, {useContext, useEffect, useState} from 'react';
+import React, {useContext, useEffect, useState, useMemo} from 'react';
 import {View, Text, Button, StyleSheet, ScrollView} from 'react-native';
 import Match from '../components/Match';
 import Toast from 'react-native-toast-message';
@@ -18,8 +18,7 @@ const Game = ({route, navigation}) => {
   } = useContext(Context);
   const options = ['rock', 'paper', 'scissors'];
 
-  useEffect(() => {
-    // getMatch();
+  useMemo(() => {
     console.log(gameId);
     const es = new EventSource(
       `http://fauques.freeboxos.fr:3000/matches/${gameId}/subscribe`,
@@ -35,7 +34,47 @@ const Game = ({route, navigation}) => {
     });
 
     es.addEventListener('message', event => {
-      console.log('New message event:', event.data);
+      console.log('New message event:');
+      console.log(event.data);
+      if (event.data[0]) {
+        if (event.data[0]?.type === 'PLAYER1_JOIN') {
+          Toast.show({
+            text1: 'Your oponent has joined the game',
+            position: 'bottom',
+          });
+        }
+        if (event.data[0]?.type === 'NEW_TURN') {
+          Toast.show({
+            text1: 'New turn',
+            position: 'bottom',
+          });
+        }
+        if (event.data[0]?.type === 'TURN_ENDED') {
+          const winner = event.data[0]?.payload?.winner;
+          Toast.show({
+            text1:
+              winner === 'draw' ? "It's a draw" : winner + ' won this round',
+            position: 'bottom',
+          });
+        }
+        if (event.data[0]?.type === 'PLAYER1_MOVED') {
+          Toast.show({
+            text1: 'Your oponent has made a move',
+            position: 'bottom',
+          });
+        }
+        if (event.data[0]?.type === 'MATCH_ENDED') {
+          const winner = event.data[0]?.payload?.winner;
+          Toast.show({
+            text1:
+              winner === 'draw'
+                ? "Game over: It's a draw"
+                : winner + ' won the match',
+            position: 'bottom',
+          });
+        }
+      }
+      getMatch();
     });
 
     es.addEventListener('error', event => {
@@ -49,7 +88,11 @@ const Game = ({route, navigation}) => {
     es.addEventListener('close', event => {
       console.log('Close SSE connection.');
     });
-  }, [gameId, currentMatch]);
+  }, [gameId]);
+
+  useEffect(() => {
+    getMatch();
+  }, [gameId, currentMove]);
 
   const getMatch = async () => {
     console.log('match id: ' + gameId);
@@ -69,8 +112,8 @@ const Game = ({route, navigation}) => {
         return res.json();
       })
       .then(res => {
-        console.log('current match');
         setCurrentMatch(res);
+        setCurrentTurn(res.turns.length + 1);
         console.log(res);
       })
       .catch(err => console.log(err));
@@ -137,6 +180,7 @@ const Game = ({route, navigation}) => {
         selectOption={selectOption}
       />
       <View>
+        <Text>Please select a turn</Text>
         <Picker
           selectedValue={currentTurn}
           style={{height: 50, backgroundColor: 'white'}}
